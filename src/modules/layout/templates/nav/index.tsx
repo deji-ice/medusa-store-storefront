@@ -24,7 +24,7 @@ export default async function Nav() {
               href="/"
               className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase"
             >
-              Medusa Store
+              Trad By Tomi
             </LocalizedClientLink>
           </div>
 
@@ -56,8 +56,7 @@ export default async function Nav() {
                 </LocalizedClientLink>
               }
             >
-              <CartButton />
-            </Suspense>
+              <CartButton />           </Suspense>
           </div>
         </nav>
       </header>
