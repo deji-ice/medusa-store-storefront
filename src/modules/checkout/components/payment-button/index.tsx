@@ -9,6 +9,9 @@ import { placeOrder } from "@modules/checkout/actions"
 import React, { useState } from "react"
 import ErrorMessage from "../error-message"
 import Spinner from "@modules/common/icons/spinner"
+import { PaystackButton } from "react-paystack"
+import clsx from "clsx"
+import { useCart } from "medusa-react"
 
 type PaymentButtonProps = {
   cart: Omit<Cart, "refundable_amount" | "refunded_total">
@@ -33,6 +36,14 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({ cart }) => {
       return <ManualTestPaymentButton notReady={notReady} />
     case "paypal":
       return <PayPalPaymentButton notReady={notReady} cart={cart} />
+    case "paystack":
+      return (
+        <PaystackPaymentButton
+          notReady={notReady}
+          cart={cart}
+          session={paymentSession}
+        />
+      )
     default:
       return <Button disabled>Select a payment method</Button>
   }
@@ -225,4 +236,47 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   )
 }
 
+const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ""
+
+const PaystackPaymentButton = ({
+  cart,
+  session,
+  notReady,
+}: {
+  cart: Omit<Cart, "refundable_amount" | "refunded_total">
+  session: PaymentSession
+  notReady: boolean
+}) => {
+  console.log(cart)
+  const onPaymentCompleted = async () => {
+    await placeOrder()
+  }
+
+  const txRef = String(session.data?.paystackTxRef)
+  const total = cart?.total || 0
+  const email = cart?.email || ""
+  const currency =
+    cart?.region.currency_code.toUpperCase() === "NGN" ? "NGN" : "USD" || "NGN"
+
+  return (
+    <PaystackButton
+      email={email}
+      amount={total}
+      reference={txRef}
+      publicKey={PAYSTACK_PUBLIC_KEY}
+      currency={currency}
+      text="Pay with Paystack"
+      onSuccess={() => {
+        onPaymentCompleted()
+      }}
+      className={clsx(
+        "w-full uppercase flex items-center justify-center min-h-[50px] px-5 py-[10px] text-small-regular border transition-colors duration-200 disabled:opacity-50",
+        "text-white bg-[#3bb75e] border-[#3bb75e] hover:bg-white hover:text-[#3bb75e] disabled:hover:bg-gray-900 disabled:hover:text-white"
+      )}
+    />
+  )
+}
+
 export default PaymentButton
+
+
